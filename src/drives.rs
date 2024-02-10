@@ -1,3 +1,5 @@
+use std::ffi::OsString;
+
 #[cfg(target_os = "windows")]
 pub mod platform {
     use std::ffi::OsString;
@@ -35,4 +37,14 @@ pub mod platform {
         }
         Ok(drives)
     }
+}
+
+pub fn get_drives() -> Vec<OsString> {
+    #[cfg(target_os = "windows")]
+    let drives = platform::get_windows_drives();
+
+    #[cfg(target_os = "macos")]
+    let drives = platform::get_mac_drives().unwrap();
+
+    drives
 }

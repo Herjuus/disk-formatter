@@ -1,15 +1,15 @@
 use core::time;
 use std::collections::HashSet;
 use std::thread::sleep;
-use std::ffi::OsString;
 
 mod display;
 mod drives;
+mod format;
 
 fn main() {
     display::init();
 
-    let initial_drives = get_drives();
+    let initial_drives = drives::get_drives();
 
     let mut ignored_drives = HashSet::new();
 
@@ -19,24 +19,18 @@ fn main() {
     }
 
     loop {
-        let drives = get_drives();
+        let drives = drives::get_drives();
 
         for drive in &drives {
             if !ignored_drives.contains(drive) {
                 println!("Starting formatting of disk: {}!", drive.to_string_lossy());
+                match format::formatter::format_drive(drive.to_owned()) {
+                    Ok(()) => println!("Drive formatted successfully."),
+                    Err(err) => eprintln!("Error formatting drive: {}", err),
+                }
             }
         }
 
         sleep(time::Duration::from_millis(500));
     }
-}
-
-fn get_drives() -> Vec<OsString> {
-    #[cfg(target_os = "windows")]
-    let drives = drives::platform::get_windows_drives();
-
-    #[cfg(target_os = "macos")]
-    let drives = drives::platform::get_mac_drives().unwrap();
-
-    drives
 }
